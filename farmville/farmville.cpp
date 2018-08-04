@@ -62,7 +62,7 @@ class farmville : public eosio::contract {
 
     rents _rents;
 
-    /// @abitable rentstatuses
+    /// @abi table rentstatuses
     struct rentstatus {
       uint64_t       id;
       uint64_t       rent;
@@ -161,24 +161,38 @@ class farmville : public eosio::contract {
         p.is_occupied = 1;
       });
     };
-    
-    // /// @abi action
-    // void rentupdate(account_name _user, uint64_t rent, string message) {
-    //   require_auth(_user);
-    //   // get the rent and check if it exists
-    //   // create rentstatus rs.rent = rent;
-    //   if(message == "Harvested") {
-    //     rent.tile
-    //     tile.find(rent.tile)
-    //     replace it with is_occupied = 0
-    //   }
-    // }
+
+    /// @abi action
+    void rentupdate(account_name _user, uint64_t rent, string message) {
+      require_auth(_user);
+
+      auto rent_itr = _rents.find(rent);
+      eosio_assert(rent_itr != _rents.end(), "Rent not in database");
+      
+      // Create new rentstatus
+      _rentstatuses.emplace(get_self(), [&](auto& p) {
+        p.id = _rentstatuses.available_primary_key();
+        p.rent = rent;
+        p.status = message;
+        p.timestamp = now();
+
+        print("hahaha");
+      });
+
+      if(message == "Harvested") {
+        auto tile_itr = _tiles.find(rent_itr->tile);
+        _tiles.modify(tile_itr, get_self(), [&](auto& p) {
+          p.is_occupied = 0;
+          print("Haha this become open");
+        });
+      }
+    }
 
     void donothing(account_name _user){
 
     }
 };
 
-EOSIO_ABI( farmville, (tileupdate)(tilecreate)(seedcreate)(seedupdate)(rentcreate)(donothing) )
+EOSIO_ABI( farmville, (tileupdate)(tilecreate)(seedcreate)(seedupdate)(rentcreate)(rentupdate) )
 // EOSIO_ABI( farmville, (tileupdate)(tilecreate)(donothing) )
 
