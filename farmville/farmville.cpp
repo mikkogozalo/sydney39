@@ -41,13 +41,56 @@ class farmville : public eosio::contract {
 
     seeds _seeds;
 
+    /// @abi table rents i64
+    struct rent {
+      uint64_t       id;
+      uint64_t       tile;
+      uint64_t       seed;
+      account_name   renter;
+
+      uint64_t primary_key() const { return id; }
+      account_name get_by_renter() const { return renter; }
+
+    };
+
+    typedef eosio::multi_index<
+      N(rents),
+      rent,
+      indexed_by< N(byrenter), const_mem_fun<rent, account_name, &rent::get_by_renter> >
+    > rents;
+
+    rents _rents;
+
+    /// @abitable rentstatuses
+    struct rentstatus {
+      uint64_t       id;
+      uint64_t       rent;
+      string         status;
+
+      uint64_t primary_key() const { return id; }
+      uint64_t get_by_rent() const { return rent; }
+
+    };
+
+    typedef eosio::multi_index<
+      N(rentstatuses),
+      rentstatus,
+      indexed_by< N(byrent), const_mem_fun<rentstatus, account_name, &rentstatus::get_by_rent> >
+    > rentstatuses;
+
+    rentstatuses _rentstatuses;
+
+
+
   public:
     using contract::contract;
 
     farmville(account_name a):
         contract(a),
         _tiles(a, a),
-        _seeds(a, a)
+        _seeds(a, a),
+        _rents(a, a),
+        _rentstatuses(a, a)
     {}
     
     /// @abi action
@@ -100,12 +143,23 @@ class farmville : public eosio::contract {
       });
     };
 
+    /// @abi action
+    void rentcreate(account_name _user, uint64_t tile, uint64_t seed) {
+      require_auth(_user);
+      _rents.emplace(get_self(), [&](auto& p) {
+        p.id = _rents.available_primary_key();
+        p.tile = tile;
+        p.seed = seed;
+        p.renter = _user;
+        print("hahaha");
+      });
+    };
     
     void donothing(account_name _user){
 
     }
 };
 
-EOSIO_ABI( farmville, (tileupdate)(tilecreate)(donothing)(seedcreate)(seedupdate) )
+EOSIO_ABI( farmville, (tileupdate)(tilecreate)(seedcreate)(seedupdate)(rentcreate)(donothing) )
 // EOSIO_ABI( farmville, (tileupdate)(tilecreate)(donothing) )
 
