@@ -1,6 +1,7 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/print.hpp>
 using namespace eosio;
+using std::string;
 
 class farmville : public eosio::contract {
   private:
@@ -25,16 +26,32 @@ class farmville : public eosio::contract {
 
     tiles _tiles;
 
+    /// @abi table seeds i64
+    struct seed {
+      uint64_t      id;
+      string        name;
+
+      uint64_t primary_key() const { return id; }
+    };
+
+    typedef eosio::multi_index<
+            N(seeds), 
+            seed
+            > seeds;
+
+    seeds _seeds;
+
   public:
     using contract::contract;
 
     farmville(account_name a):
         contract(a),
-        _tiles(a, a)
+        _tiles(a, a),
+        _seeds(a, a)
     {}
     
     /// @abi action
-    void create(account_name _user, uint64_t _rate, uint64_t _x, uint64_t _y) {
+    void tilecreate(account_name _user, uint64_t _rate, uint64_t _x, uint64_t _y) {
       // require_auth(_user);
       print("wooo");
       _tiles.emplace(get_self(), [&](auto& p) {
@@ -48,7 +65,7 @@ class farmville : public eosio::contract {
     }
 
     /// @abi action
-    void update(account_name _user, uint64_t id, uint64_t _rate, uint64_t _x, uint64_t _y) {
+    void tileupdate(account_name _user, uint64_t id, uint64_t _rate, uint64_t _x, uint64_t _y) {
       require_auth( _user );
 
       auto itr = _tiles.find(id);
@@ -60,10 +77,35 @@ class farmville : public eosio::contract {
       });
     };
 
+    /// @abi action
+    void seedcreate(account_name _user, std::string _name) {
+      require_auth(_user);
+
+      print("wooo seeeeed");
+      _seeds.emplace(get_self(), [&](auto& p) {
+        p.id = _seeds.available_primary_key();
+        p.name = _name;
+        print("hahaha");
+      });
+    }
+
+    /// @abi action
+    void seedupdate(account_name _user, uint64_t id, std::string _name) {
+      require_auth( _user );
+
+      auto itr = _seeds.find(id);
+      _seeds.modify(itr, get_self(), [&](auto& p) {
+          print(p.name);
+          p.name = _name;
+      });
+    };
+
+    
     void donothing(account_name _user){
 
     }
 };
 
-EOSIO_ABI( farmville, (update)(create)(donothing) )
+EOSIO_ABI( farmville, (tileupdate)(tilecreate)(donothing)(seedcreate)(seedupdate) )
+// EOSIO_ABI( farmville, (tileupdate)(tilecreate)(donothing) )
 
