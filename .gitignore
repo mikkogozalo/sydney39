@@ -1,2 +1,5 @@
 eosio_mount/data/*
 eosio_mount/*
+**/*.wasm
+**/*.wast
+**/*.abi
