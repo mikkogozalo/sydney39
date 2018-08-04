@@ -1,0 +1,13 @@
+version: '3'
+services:
+  eosio:
+    image: eosio/eos-dev
+    container_name: eosio
+    command: nodeos -e -p eosio --plugin eosio::wallet_api_plugin --plugin eosio::wallet_plugin --plugin eosio::producer_plugin --plugin eosio::history_plugin --plugin eosio::chain_api_plugin --plugin eosio::history_api_plugin --plugin eosio::http_plugin -d /mnt/dev/data --config-dir /mnt/dev/config --http-server-address=0.0.0.0:8888 --access-control-allow-origin=* --contracts-console --hard-replay --http-validate-host=false --delete-all-blocks
+    ports:
+      - "8888:8888"
+      - "9876:9876"
+    volumes:
+      - "./eosio_mount/work:/work"
+      - "./eosio_mount/eosio/data:/mnt/dev/data"
+      - "./eosio_mount/eosio/config:/mnt/dev/config"
