@@ -1,1 +1,2 @@
-eosio_mount/
+eosio_mount/eosio/data/*
+eosio_mount/eosio/config/*
