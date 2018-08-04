@@ -105,6 +105,7 @@ class farmville : public eosio::contract {
         p.rate = _rate;
         p.x = _x;
         p.y = _y;
+        p.is_occupied = 0;
         print("hohoho");
       });
     }
@@ -148,7 +149,6 @@ class farmville : public eosio::contract {
     /// @abi action
     void rentcreate(account_name _user, uint64_t tile, uint64_t seed) {
       require_auth(_user);
-      auto itr _tiles.find(tile);
       _rents.emplace(get_self(), [&](auto& p) {
         p.id = _rents.available_primary_key();
         p.tile = tile;
@@ -156,8 +156,24 @@ class farmville : public eosio::contract {
         p.renter = _user;
         print("hahaha");
       });
+      auto itr = _tiles.find(tile);
+      _tiles.modify(itr, get_self(), [&](auto& p) {
+        p.is_occupied = 1;
+      });
     };
     
+    // /// @abi action
+    // void rentupdate(account_name _user, uint64_t rent, string message) {
+    //   require_auth(_user);
+    //   // get the rent and check if it exists
+    //   // create rentstatus rs.rent = rent;
+    //   if(message == "Harvested") {
+    //     rent.tile
+    //     tile.find(rent.tile)
+    //     replace it with is_occupied = 0
+    //   }
+    // }
+
     void donothing(account_name _user){
 
     }
