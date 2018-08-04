@@ -11,3 +11,5 @@ services:
       - "./docker-entrypoint.sh:/docker-entrypoint.sh"
       - "./:/work"
       - "./eosio_mount/data:/mnt/dev/data"
+      # - "./eosio_mount/config:/mnt/dev/config"
+      - "./eosio_mount/home:/root"
