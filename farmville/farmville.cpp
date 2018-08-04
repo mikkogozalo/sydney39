@@ -13,6 +13,7 @@ class farmville : public eosio::contract {
       uint64_t      rate;
       uint64_t      x;
       uint64_t      y;
+      bool          is_occupied;
 
       uint64_t primary_key() const { return id; }
       account_name get_by_owner() const { return owner; }
@@ -66,6 +67,7 @@ class farmville : public eosio::contract {
       uint64_t       id;
       uint64_t       rent;
       string         status;
+      uint64_t       timestamp;
 
       uint64_t primary_key() const { return id; }
       uint64_t get_by_rent() const { return rent; }
@@ -146,6 +148,7 @@ class farmville : public eosio::contract {
     /// @abi action
     void rentcreate(account_name _user, uint64_t tile, uint64_t seed) {
       require_auth(_user);
+      auto itr _tiles.find(tile);
       _rents.emplace(get_self(), [&](auto& p) {
         p.id = _rents.available_primary_key();
         p.tile = tile;
