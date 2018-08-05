@@ -199,7 +199,7 @@ class farmville : public eosio::contract {
       });
       _rentstatuses.emplace(get_self(), [&](auto &q) {
         q.id = _rentstatuses.available_primary_key();
-        q.status = "Planted";
+        q.status = "seed";
         q.timestamp = now();
         q.rent = blah_id;
       });

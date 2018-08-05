@@ -10,7 +10,8 @@ def get_tiles():
     tiles = Tile.get_all_tiles()
     return jsonify([tile.to_json() for tile in tiles])
 
-@app.route("/rent")
+@app.route("/rent", methods=['POST'])
 def create_rent():
     json = request.get_json()
-    Rent.create('sage', 9, 2)
+    Rent.create(json['renter'], json['tile'], json['crop'])
+    return jsonify({'status': 'success'})
