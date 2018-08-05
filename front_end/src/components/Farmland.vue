@@ -1,6 +1,7 @@
 <template>
   <div class="background">
     <action-menu></action-menu>
+    <img src="static/Group_3.svg" height="80" style="position: fixed; top: 10px; left: 10px;" />
     <div class="farmland">
       <div class="tile"
            v-for="tile in tiles"
