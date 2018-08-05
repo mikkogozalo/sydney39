@@ -6,7 +6,23 @@ import router from './router'
 import 'mdi/css/materialdesignicons.min.css'
 import '@/assets/main.css'
 
+import lodash from 'lodash';
+
 Vue.config.productionTip = false
+
+// custom plugin
+// inject lodash in this Vue.$_
+Vue.use({
+  install(VueObj) {
+    Object.defineProperties(VueObj.prototype, {
+      _: {
+        get() {
+          return lodash;
+        }
+      }
+    });
+  }
+});
 
 /* eslint-disable no-new */
 new Vue({
