@@ -105,19 +105,20 @@ export default {
         const data = resp.data;
         for (var i=0; i<9; i++) {
           if (data[i].is_occupied) {
-            
+            console.log(data[i].crop.name);
+            console.log(data[i].status.name );
 
             this.tiles.push({
               id: data[i].id,
               owner: 1,
               cropType: data[i].crop.name || null,
-              cropState: data[i].status.name || null,
+              cropState: data[i].status || null,
               isSelected: false
             });
 
-          
+
           } else {
-            
+
             this.tiles.push({
               id: data[i].id, // TODO:
               owner: 1,
@@ -125,12 +126,12 @@ export default {
               cropState: null,
               isSelected: false
             });
-            
+
           }
         };
       });
-    //   
-    
+    //
+
   },
   methods: {
     returnSpriteUrl (cropType, cropState) {
@@ -138,12 +139,15 @@ export default {
     },
     selectTile (tileId) {
       const tileSel = this.tiles.filter(function (obj) {
-        return obj.id === tileId
+        return obj.id === tileId - 1;
       })[0];
-      if (tileSel.cropType === undefined) {
+      console.log(tileSel.cropType);
+      if (!tileSel.cropType) {
+        console.log('Called if');
         // Tile not occupied
         this.isShowModal = true
       } else {
+        console.log('Called else');
         if (tileSel.isSelected) {
           tileSel.isSelected = false
         } else {
