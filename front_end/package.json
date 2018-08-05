@@ -11,6 +11,8 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "axios": "^0.18.0",
+    "lodash": "^4.17.10",
     "mdi": "^2.2.43",
     "node-sass": "^4.9.2",
     "sass-loader": "^7.1.0",

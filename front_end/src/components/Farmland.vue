@@ -27,6 +27,7 @@ import ActionMenu from '@/components/ActionMenu.vue'
 import InventoryMenu from '@/components/InventoryMenu.vue'
 import MarketplaceMenu from '@/components/MarketplaceMenu.vue'
 import ConfirmRent from '@/components/ConfirmRent.vue'
+import axios from 'axios'
 
 export default {
   name: 'HelloWorld',
@@ -37,68 +38,100 @@ export default {
       isShowInfo: false,
       currentUser: 1,
       tiles: [
-        {
-          id: 1,
-          owner: 1,
-          cropType: null,
-          cropState: null,
-          isSelected: false
-        }, {
-          id: 2,
-          owner: 2,
-          cropType: 'lemon',
-          cropState: 'grow',
-          isSelected: false
-        }, {
-          id: 3,
-          owner: 2,
-          cropType: 'lettuce',
-          cropState: 'harvest',
-          isSelected: false
-        }, {
-          id: 4,
-          owner: 1,
-          cropType: null,
-          cropState: null,
-          isSelected: false
-        }, {
-          id: 5,
-          owner: 1,
-          cropType: 'lettuce',
-          cropState: 'harvest',
-          isSelected: false
-        }, {
-          id: 6,
-          owner: 2,
-          cropType: 'lettuce',
-          cropState: 'grow',
-          isSelected: false
-        }, {
-          id: 7,
-          owner: 2,
-          cropType: 'carrot',
-          cropState: 'harvest',
-          isSelected: false
-        }, {
-          id: 8,
-          owner: 1,
-          cropType: 'lemon',
-          cropState: 'harvest',
-          isSelected: false
-        }, {
-          id: 9,
-          owner: 1,
-          cropType: 'carrot',
-          cropState: 'grow',
-          isSelected: false
-        }
+      //   {
+      //     id: 1,
+      //     owner: 1,
+      //     cropType: null,
+      //     cropState: null,
+      //     isSelected: false
+      //   }, {
+      //     id: 2,
+      //     owner: 2,
+      //     cropType: 'lemon',
+      //     cropState: 'grow',
+      //     isSelected: false
+      //   }, {
+      //     id: 3,
+      //     owner: 2,
+      //     cropType: 'lettuce',
+      //     cropState: 'harvest',
+      //     isSelected: false
+      //   }, {
+      //     id: 4,
+      //     owner: 1,
+      //     cropType: null,
+      //     cropState: null,
+      //     isSelected: false
+      //   }, {
+      //     id: 5,
+      //     owner: 1,
+      //     cropType: 'lettuce',
+      //     cropState: 'harvest',
+      //     isSelected: false
+      //   }, {
+      //     id: 6,
+      //     owner: 2,
+      //     cropType: 'lettuce',
+      //     cropState: 'grow',
+      //     isSelected: false
+      //   }, {
+      //     id: 7,
+      //     owner: 2,
+      //     cropType: 'carrot',
+      //     cropState: 'harvest',
+      //     isSelected: false
+      //   }, {
+      //     id: 8,
+      //     owner: 1,
+      //     cropType: 'lemon',
+      //     cropState: 'harvest',
+      //     isSelected: false
+      //   }, {
+      //     id: 9,
+      //     owner: 1,
+      //     cropType: 'carrot',
+      //     cropState: 'grow',
+      //     isSelected: false
+      //   }
       ],
       tileCount: 9,
       cropType: [{id: 1, name: 'carrot'}, {id: 2, name: 'lettuce'}, {id: 3, name: 'lemon'}],
       cropState: [{id: 1, name: 'seed'}, {id: 2, name: 'grow'}, {id: 3, name: 'harvest'}]
     }
   },
-  computed: {
+  created() {
+    axios.get('http://172.16.96.208:5000/tiles')
+      .then(resp => {
+        const data = resp.data;
+        for (var i=0; i<9; i++) {
+          if (data[i].is_occupied) {
+            console.log(data[i].crop.name);
+            console.log(data[i].status.name );
+
+            this.tiles.push({
+              id: data[i].id,
+              owner: 1,
+              cropType: data[i].crop.name || null,
+              cropState: data[i].status || null,
+              isSelected: false
+            });
+
+
+          } else {
+
+            this.tiles.push({
+              id: data[i].id, // TODO:
+              owner: 1,
+              cropType: null,
+              cropState: null,
+              isSelected: false
+            });
+
+          }
+        };
+      });
+    //
+
   },
   methods: {
     returnSpriteUrl (cropType, cropState) {
@@ -106,12 +139,15 @@ export default {
     },
     selectTile (tileId) {
       const tileSel = this.tiles.filter(function (obj) {
-        return obj.id === tileId
+        return obj.id === tileId - 1;
       })[0];
-      if (tileSel.cropType === undefined) {
+      console.log(tileSel.cropType);
+      if (!tileSel.cropType) {
+        console.log('Called if');
         // Tile not occupied
         this.isShowModal = true
       } else {
+        console.log('Called else');
         if (tileSel.isSelected) {
           tileSel.isSelected = false
         } else {
