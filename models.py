@@ -144,7 +144,7 @@ class Tile(object):
             rent = Rent.get_by_tile(self.id, fetch_tile=False)
             json['renter'] = rent.renter;
             json['crop'] = {'id': rent.seed.id, 'name': rent.seed.name}
-            json['status'] = rent.statuses
+            json['status'] = rent.statuses[-1]['status']
         return json
 
 
