@@ -51,13 +51,15 @@ class farmville : public eosio::contract {
 
       uint64_t primary_key() const { return id; }
       account_name get_by_renter() const { return renter; }
+      uint64_t get_by_tile() const { return tile; };
 
     };
 
     typedef eosio::multi_index<
       N(rents),
       rent,
-      indexed_by< N(byrenter), const_mem_fun<rent, account_name, &rent::get_by_renter> >
+      indexed_by< N(byrenter), const_mem_fun<rent, account_name, &rent::get_by_renter> >,
+      indexed_by< N(bytile), const_mem_fun<rent, account_name, &rent::get_by_tile> >
     > rents;
 
     rents _rents;
@@ -124,6 +126,22 @@ class farmville : public eosio::contract {
     };
 
     /// @abi action
+    void tilegetall(account_name _user) {
+      auto itr = _tiles.begin();
+      while (itr != _tiles.end()) {
+        print(itr->id, "|||", name{itr->owner}, "|||", itr->rate, "|||", itr->x, "|||", itr->y, "|||", itr->is_occupied, "+++");
+        itr++;
+      }
+    }
+
+    /// @abi action
+    void tileget(account_name _user, uint64_t id) {
+      auto itr = _tiles.find(id);
+      eosio_assert(itr != _tiles.end(), "Tile not in database");
+      print(itr->id, "|||", name{itr->owner}, "|||", itr->rate, "|||", itr->x, "|||", itr->y, "|||", itr->is_occupied);
+    }
+
+    /// @abi action
     void seedcreate(account_name _user, std::string _name) {
       require_auth(_user);
 
@@ -147,10 +165,29 @@ class farmville : public eosio::contract {
     };
 
     /// @abi action
+    void seedgetall(account_name _user) {
+      auto itr = _seeds.begin();
+      while (itr != _seeds.end()) {
+        print(itr->id, "|||", itr->name, "+++");
+        itr++;
+      }      
+    }
+
+    /// @abi action
+    void seedget(account_name _user, uint64_t id) {
+      auto itr = _seeds.find(id);
+      eosio_assert(itr != _seeds.end(), "Seed not in database");
+      print(itr->id, "|||", itr->name);
+
+    }
+
+    /// @abi action
     void rentcreate(account_name _user, uint64_t tile, uint64_t seed) {
       require_auth(_user);
+      uint64_t blah_id;
       _rents.emplace(get_self(), [&](auto& p) {
         p.id = _rents.available_primary_key();
+        blah_id = p.id;
         p.tile = tile;
         p.seed = seed;
         p.renter = _user;
@@ -159,6 +196,12 @@ class farmville : public eosio::contract {
       auto itr = _tiles.find(tile);
       _tiles.modify(itr, get_self(), [&](auto& p) {
         p.is_occupied = 1;
+      });
+      _rentstatuses.emplace(get_self(), [&](auto &q) {
+        q.id = _rentstatuses.available_primary_key();
+        q.status = "Planted";
+        q.timestamp = now();
+        q.rent = blah_id;
       });
     };
 
@@ -176,7 +219,6 @@ class farmville : public eosio::contract {
         p.status = message;
         p.timestamp = now();
 
-        print("hahaha");
       });
 
       if(message == "Harvested") {
@@ -188,11 +230,52 @@ class farmville : public eosio::contract {
       }
     }
 
+    /// @abi action
+    void rentget(account_name _user, uint64_t rent) {
+      auto itr = _rents.find(rent);
+      eosio_assert(itr != _rents.end(), "Rent not in database");
+      print(itr->id, "|||", itr->tile, "|||", itr->seed, "|||", name{itr->renter});
+    }
+
+
+    void rentgets(account_name _user, uint64_t rent) {
+      auto rent_idx = _rentstatuses.template get_index<N(byrent)>();
+      auto itr = rent_idx.find(rent);
+      while(itr != rent_idx.end() && itr->rent == rent) {
+        print(itr->id, "|||", itr->rent, "|||", itr->status, "|||", itr->timestamp, "+++");
+        itr++;
+      }
+    }
+
+    /// @abi action
+    void rentgetuser(account_name _user) {
+      auto account_index = _rents.template get_index<N(byrenter)>();
+      auto itr = account_index.find(_user);
+      while (itr != account_index.end() && itr->renter == _user) {
+        print(itr->id, "|||", itr->tile, "|||", itr->seed, "|||", name{itr->renter}, "+++");
+        itr++;
+      }
+    }
+
+    /// @abi action
+    void rentgettile(account_name _user, uint64_t tile) {
+      auto account_index = _rents.template get_index<N(bytile)>();
+      auto itr = account_index.find(tile);
+      string a = "";
+      while (itr != account_index.end() && itr->tile == tile) {
+        a = std::to_string(itr->id) + "|||" + std::to_string(itr->tile) + "|||" + std::to_string(itr->seed) +  "|||" + name{itr->renter}.to_string();
+        itr++;
+      }
+      print(a);
+      ;
+    }
+
+
     void donothing(account_name _user){
 
     }
 };
 
-EOSIO_ABI( farmville, (tileupdate)(tilecreate)(seedcreate)(seedupdate)(rentcreate)(rentupdate) )
+EOSIO_ABI( farmville, (tileupdate)(tilecreate)(seedcreate)(seedupdate)(rentcreate)(rentupdate)(rentget)(rentgetuser)(tilegetall)(tileget)(seedgetall)(seedget)(rentgets)(rentgettile)(donothing))
 // EOSIO_ABI( farmville, (tileupdate)(tilecreate)(donothing) )
 
